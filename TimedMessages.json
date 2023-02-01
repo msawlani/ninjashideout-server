@@ -1,0 +1,25 @@
+{
+    "timedMessage": [
+        {
+            "name": "follow",
+            "timer": "15",
+            "remaining": "0",
+            "lines": "2",
+            "message": "if you are enjoying my stream, don't forget to hit the follow button. thanks!"
+        },
+        {
+            "name": "schedule",
+            "timer": "10",
+            "remaining": 0,
+            "lines": "3",
+            "message": "Schedule is to be announced"
+        },
+        {
+            "name": "media",
+            "timer": "5",
+            "lines": "3",
+            "remaining": 0,
+            "message": "Follow me on social media to keep up to date! Twitter: https://twitter.com/SinsofaNinja Instagram: https://www.instagram.com/sinsofaninja/?igshid=1kpirxwoide0p YouTube: https://www.youtube.com/channel/UC9UnO8oEvR3UCxgxVsPFB_w"
+        }
+    ]
+}

@@ -1,0 +1,44 @@
+{
+    "commands": [
+        {
+            "command": "platform",
+            "active": true,
+            "message": "pc"
+        },
+        {
+            "command": "spam",
+            "active": true,
+            "message": "/me [warning!!!] if you advise other channels or spam in my chat, my mods will go full force! I HAVE SPOKEN!!!"
+        },
+        {
+            "command": "commands",
+            "active": true,
+            "message": "here is a list of the commands: https://docs.google.com/spreadsheets/d/1p5bLaAIq_cQIttQrZjd-lu3YtsEEo9Z1PgE2n0nYpII/edit?usp=sharing"
+        },
+        {
+            "command": "discord",
+            "active": true,
+            "message": "want to stay connected and meet awesome people? join this discord: https://discord.gg/DkEepmBxkA"
+        },
+        {
+            "command": "about",
+            "active": true,
+            "message": "i am a custom bot coded using tmi js application programming interface. he used visual studio code with programming language javascript to create me."
+        },
+        {
+            "command": "media",
+            "active": true,
+            "message": "Follow me on social media to keep up to date! Twitter: https://twitter.com/SinsofaNinja Instagram: https://www.instagram.com/sinsofaninja/?igshid=1kpirxwoide0p YouTube: https://www.youtube.com/channel/UC9UnO8oEvR3UCxgxVsPFB_w"
+        },
+        {
+            "command": "lurk",
+            "active": true,
+            "message": "going off and hiding in the shadows?"
+        },
+        {
+            "command": "test",
+            "active": true,
+            "message": "test"
+        }
+    ]
+}

@@ -26,4 +26,13 @@ commandRouter
     });
   });
 
+commandRouter.route("/:id").delete((req, res, next) => {
+  Commands.findByIdAndRemove(req.params.id).then((resp) => {
+    console.log(req.params.id);
+    res.status = 200;
+    res.set("Content-Type", "application/json");
+    res.json(resp);
+  });
+});
+
 module.exports = commandRouter;

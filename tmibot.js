@@ -317,22 +317,6 @@ function Comms(message, userState, channel, isModUp) {
       active: true,
       message: message,
     });
-    console.log(Commands);
-    fetch("http://localhost:3001/commands", { method: "POST" })
-      .then((res) => res.json())
-      .then((data) => {
-        data.map((command) => {
-          if (message === `!${command.command}` && command.active) {
-            client.say(channel, command.message);
-            command.active = false;
-            // console.log(comm.active);
-            setTimeout(function () {
-              command.active = true;
-              console.log(`${command.command} Done`);
-            }, 30000);
-          }
-        });
-      });
   }
 
   if (message.startsWith("!addmessage") && isModUp === true) {
@@ -379,10 +363,10 @@ function Comms(message, userState, channel, isModUp) {
     .then((res) => res.json())
     .then((data) => {
       data.map((command) => {
-        if (message === `!${command.command}` && command.active) {
+        if (message === `!${command.command}`) {
           client.say(channel, command.message);
           command.active = false;
-          // console.log(comm.active);
+          // console.log(command.command);
           setTimeout(function () {
             command.active = true;
             console.log(`${command.command} Done`);

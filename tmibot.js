@@ -4,6 +4,7 @@ import Commands from "./commands.json";
 import TimedMessages from "./TimedMessages.json";
 const badwords = require("./badwords.json");
 const fetch = require("node-fetch");
+const url = "http://localhost:3001";
 
 //functions and vars
 var users = [];
@@ -195,35 +196,29 @@ function FilterChat(userState, message, channel, isModUp, isBroadcaster) {
   }
 }
 
-function Comms(message, userState, channel, isModUp) {
+function Comms(message, userState, channel, isModUp, client) {
   message = message.toLowerCase();
 
   if (message.startsWith("!editcomm") && isModUp === true) {
-    var command = message.split(" ")[1];
-    var message = message.split(" ").slice(2).join(" ");
+    var command = {
+      command: message.split(" ")[1],
+      active: true,
+      message: message.split(" ").slice(2).join(" "),
+    };
     console.log(command);
-    if (command !== "" && message !== "") {
-      for (let [i, comm] of Commands.commands.entries()) {
-        if (comm.command === command) {
-          comm.message = message;
-          fs.writeFile("./commands.json", JSON.stringify(Commands), (err) => {
-            if (err) {
-              console.log(err);
-            } else {
-              client.say(
-                channel,
-                `@${userState.username} --> You have edited the ${command} command`
-              );
-              console.log(`${command} has been edited`);
-            }
-          });
-        }
-      }
-    } else {
-      client.say(
-        channel,
-        "Must enter the command name and message you want to replace."
-      );
+    try {
+      fetch(`${url}/commands/${command.command}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(command),
+      }).catch((err) => {
+        console.table(err);
+      });
+      client.say(channel, `${command.command} command has been edited!`);
+    } catch (error) {
+      console.table(error);
     }
   }
 
@@ -261,62 +256,44 @@ function Comms(message, userState, channel, isModUp) {
 
   if (message.startsWith("!delcomm") && isModUp === true) {
     var command = message.split(" ")[1];
-    console.log(command);
 
-    for (let [i, comm] of Commands.commands.entries()) {
-      if (comm.command === command) {
-        Commands.commands.splice(i, 1);
-        fs.writeFile("./commands.json", JSON.stringify(Commands), (err) => {
-          if (err) {
-            console.log(err);
-          } else {
-            client.say(
-              channel,
-              `@${userState.username} --> You have deleted the ${command} command`
-            );
-            console.log(`${command} has been deleted`);
-          }
-        });
-      }
+    console.log(command);
+    try {
+      fetch(`${url}/commands/${command}`, { method: "DELETE" }).catch((err) => {
+        console.table(err);
+      });
+      client.say(channel, `${command.command} command has been deleted!`);
+    } catch (error) {
+      console.table(error);
     }
   }
 
   if (message.startsWith("!delmessage") && isModUp === true) {
     var name = message.split(" ")[1];
     console.log(name);
-
-    for (let [i, message] of TimedMessages.timedMessage.entries()) {
-      if (message.name === name) {
-        TimedMessages.timedMessage.splice(i, 1);
-        fs.writeFile(
-          "./TimedMessages.json",
-          JSON.stringify(TimedMessages),
-          (err) => {
-            if (err) {
-              console.log(err);
-            } else {
-              client.say(
-                channel,
-                `@${userState.username} --> You have deleted the ${name} timed message`
-              );
-              console.log(`${name} timed message has been deleted`);
-            }
-          }
-        );
-      }
-    }
   }
 
   if (message.startsWith("!addcomm") && isModUp === true) {
-    var command = message.split(" ")[1];
-    var message = message.split(" ").slice(2).join(" ");
-    console.log(command);
-    console.log(message);
-    Commands["commands"].push({
-      command: command,
+    var command = {
+      command: message.split(" ")[1],
       active: true,
-      message: message,
-    });
+      message: message.split(" ").slice(2).join(" "),
+    };
+    console.log(command);
+    try {
+      fetch(`${url}/commands`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(command),
+      }).catch((err) => {
+        console.table(err);
+      });
+      client.say(channel, `${command.command} command has been added!`);
+    } catch (error) {
+      console.table(error);
+    }
   }
 
   if (message.startsWith("!addmessage") && isModUp === true) {
@@ -359,7 +336,7 @@ function Comms(message, userState, channel, isModUp) {
     }
   }
 
-  fetch("http://localhost:3001/commands")
+  fetch(`${url}/commands`)
     .then((res) => res.json())
     .then((data) => {
       data.map((command) => {
@@ -475,7 +452,7 @@ client.on("message", (channel, userState, message, self) => {
       }
     }
   );
-  Comms(message, userState, channel, isModUp);
+  Comms(message, userState, channel, isModUp, client);
   ShoutOut(message, userState, channel, isModUp, shoutOut);
 
   if (message.toLowerCase() === "!ad" && isBroadcaster === true) {

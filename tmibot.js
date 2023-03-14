@@ -227,31 +227,6 @@ function Comms(message, userState, channel, isModUp, client) {
     var timer = message.split(" ")[2];
     var message = message.split(" ").slice(3).join(" ");
     console.log(name);
-
-    for (let [i, nam] of TimedMessages.timedMessage.entries()) {
-      if (nam.name === name) {
-        nam.timer = timer;
-        if (message !== "") {
-          nam.message = message;
-        }
-
-        fs.writeFile(
-          "./TimedMessages.json",
-          JSON.stringify(TimedMessages),
-          (err) => {
-            if (err) {
-              console.log(err);
-            } else {
-              client.say(
-                channel,
-                `@${userState.username} --> You have edited the ${name} timed message`
-              );
-              console.log(`${name} timed message has been edited`);
-            }
-          }
-        );
-      }
-    }
   }
 
   if (message.startsWith("!delcomm") && isModUp === true) {
@@ -304,36 +279,6 @@ function Comms(message, userState, channel, isModUp, client) {
     // console.log(name);
     // console.log(timer);
     // console.log(message);
-    if (name !== "" && timer !== "" && lines !== "" && message !== "") {
-      TimedMessages["timedMessage"].push({
-        name: name,
-        timer: timer,
-        remaining: 0,
-        lines: lines,
-        message: message,
-      });
-      console.log(TimedMessages);
-      fs.writeFile(
-        "./TimedMessages.json",
-        JSON.stringify(TimedMessages),
-        (err) => {
-          if (err) {
-            console.log(err);
-          } else {
-            client.say(
-              channel,
-              `@${userState.username} --> You have added the ${name} timed message`
-            );
-            console.log(`${name} timed message has been added`);
-          }
-        }
-      );
-    } else {
-      client.say(
-        channel,
-        `@${userState.username} --> Must enter name of message, how many minutes, how many chat lines, and what the message says.`
-      );
-    }
   }
 
   fetch(`${url}/commands`)
@@ -404,17 +349,17 @@ const client = new tmi.Client({
 //connecting client to server
 client.on("connected", (port, address) => {
   console.log(client);
-  TimedMessages.timedMessage.forEach((name) => {
-    console.log(parseInt(name.timer));
+  // TimedMessages.timedMessage.forEach((name) => {
+  //   console.log(parseInt(name.timer));
 
-    setInterval(() => {
-      //var followPhrases = phrases[Math.floor(Math.random() * phrases.length)];
-      if (counter >= name.lines) {
-        client.say("SinsofaNinja", `${name.message}`);
-        counter = 0;
-      }
-    }, parseInt(name.timer) * 60000);
-  });
+  //   setInterval(() => {
+  //     //var followPhrases = phrases[Math.floor(Math.random() * phrases.length)];
+  //     if (counter >= name.lines) {
+  //       client.say("SinsofaNinja", `${name.message}`);
+  //       counter = 0;
+  //     }
+  //   }, parseInt(name.timer) * 60000);
+  // });
 });
 client.connect().catch(console.error);
 //chat moderation and commands

@@ -273,12 +273,33 @@ function Comms(message, userState, channel, isModUp, client) {
 
   if (message.startsWith("!addmessage") && isModUp === true) {
     var name = message.split(" ")[1];
-    var timer = message.split(" ")[2];
+    var time = message.split(" ")[2];
     var lines = message.split(" ")[3];
     var message = message.split(" ").slice(4).join(" ");
     // console.log(name);
     // console.log(timer);
     // console.log(message);
+    let timedMessage = {
+      name: name,
+      time: time,
+      lines: lines,
+      message: message,
+    };
+
+    try {
+      fetch(`${url}/timedmessages`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(timedMessage),
+      }).catch((err) => {
+        console.table(err);
+      });
+      client.say(channel, `${name} message has been added!`);
+    } catch (error) {
+      console.table(error);
+    }
   }
 
   fetch(`${url}/commands`)
@@ -294,6 +315,20 @@ function Comms(message, userState, channel, isModUp, client) {
             console.log(`${command.command} Done`);
           }, 30000);
         }
+      });
+    });
+
+  fetch(`${url}/timedmessages`)
+    .then((res) => res.json())
+    .then((data) => {
+      data.forEach((timedMessage) => {
+        setInterval(() => {
+          //var followPhrases = phrases[Math.floor(Math.random() * phrases.length)];
+          if (counter >= timedMessage.lines) {
+            client.say("SinsofaNinja", `${timedMessage.message}`);
+            counter = 0;
+          }
+        }, parseInt(timedMessage.time) * 60000);
       });
     });
 }
@@ -349,17 +384,6 @@ const client = new tmi.Client({
 //connecting client to server
 client.on("connected", (port, address) => {
   console.log(client);
-  // TimedMessages.timedMessage.forEach((name) => {
-  //   console.log(parseInt(name.timer));
-
-  //   setInterval(() => {
-  //     //var followPhrases = phrases[Math.floor(Math.random() * phrases.length)];
-  //     if (counter >= name.lines) {
-  //       client.say("SinsofaNinja", `${name.message}`);
-  //       counter = 0;
-  //     }
-  //   }, parseInt(name.timer) * 60000);
-  // });
 });
 client.connect().catch(console.error);
 //chat moderation and commands

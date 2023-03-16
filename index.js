@@ -1,5 +1,5 @@
 require = require("esm")(module /*,options*/);
 require("dotenv").config();
 
-module.exports = require("./express.js");
-module.exports = require("./tmibot.js");
+module.exports = require("./Express Server/express.js");
+module.exports = require("./Bot/tmibot.js");

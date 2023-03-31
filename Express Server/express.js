@@ -8,9 +8,7 @@ const timedMessagesRouter = require("./TimedMessagesRouter");
 app.use(cors());
 app.use(express.json());
 
-mongoose.connect(
-  "mongodb+srv://admin:Ninja%401234@ninjashideoutbot.hjs33os.mongodb.net/Ninjashideout"
-);
+mongoose.connect(process.env.DBCONNECTION);
 
 app.use("/commands", commandRouter);
 app.use("/timedMessages", timedMessagesRouter);

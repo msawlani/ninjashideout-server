@@ -1,8 +1,8 @@
 const fetch = require("node-fetch");
 const url = "http://localhost:3001";
+let activeIntervals = [];
 
 export function Comms(message, userState, channel, isModUp, client) {
-  var counter = 0;
   message = message.toLowerCase();
 
   if (message.startsWith("!editcomm") && isModUp === true) {
@@ -103,6 +103,7 @@ export function Comms(message, userState, channel, isModUp, client) {
         console.table(err);
       });
       client.say(channel, `${name} message has been added!`);
+      startTimerMessage(client, channel, timedMessage);
     } catch (error) {
       console.table(error);
     }
@@ -123,18 +124,28 @@ export function Comms(message, userState, channel, isModUp, client) {
         }
       });
     });
+}
 
-  fetch(`${url}/timedmessages`)
+export function startTimerMessage(client, channel, timerMessage, counter) {
+  fetch(`https://api.twitch.tv/helix/streams?user_login=${channel}`, {
+    headers: {
+      "Client-ID": process.env.STREAMER_OAUTH,
+      Authorization: process.env.STREAMER_CLIENT_ID,
+    },
+  })
     .then((res) => res.json())
     .then((data) => {
-      data.forEach((timedMessage) => {
-        setInterval(() => {
-          //var followPhrases = phrases[Math.floor(Math.random() * phrases.length)];
-          if (counter >= timedMessage.lines) {
-            client.say("SinsofaNinja", `${timedMessage.message}`);
-            counter = 0;
-          }
-        }, parseInt(timedMessage.time) * 60000);
-      });
+      console.log(data);
     });
+  // if (response.data.data.length > 0) {
+  //   console.log(`${channelName} is live`);
+  // } else {
+  //   console.log(`${channelName} is not live`);
+  // }
+  setInterval(() => {
+    console.log("Done");
+    console.log(timerMessage.message);
+    //var followPhrases = phrases[Math.floor(Math.random() * phrases.length)];
+    client.say(channel, `${timerMessage.message}`);
+  }, parseInt(timerMessage.time) * 1000);
 }

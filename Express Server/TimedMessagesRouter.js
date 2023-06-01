@@ -8,21 +8,23 @@ const timedMessagesRouter = express.Router();
 
 timedMessagesRouter.use(bodyParser.json());
 
-timedMessagesRouter.route("/").get((req, res, next) => {
-  TimedMessages.find(req.query).then((TimedMessages) => {
-    res.statusCode = 200;
-    res.setHeader("Content-Type", "application/json");
-    res.json(TimedMessages);
+timedMessagesRouter
+  .route("/")
+  .get((req, res, next) => {
+    TimedMessages.find(req.query).then((TimedMessages) => {
+      res.statusCode = 200;
+      res.setHeader("Content-Type", "application/json");
+      res.json(TimedMessages);
+    });
+  })
+  .post((req, res, next) => {
+    TimedMessages.create(req.body).then((timedMessage) => {
+      console.log("Time message Created: ", timedMessage);
+      res.statusCode = 200;
+      res.setHeader("Content-Type", "application/json");
+      res.json(timedMessage);
+    });
   });
-});
-// .post((req, res, next) => {
-//   TimedMessages.create(req.body).then((timedMessage) => {
-//     console.log("Time message Created: ", timedMessage);
-//     res.statusCode = 200;
-//     res.setHeader("Content-Type", "application/json");
-//     res.json(timedMessage);
-//   });
-// });
 
 // timedMessagesRouter
 //   .route("/:name")

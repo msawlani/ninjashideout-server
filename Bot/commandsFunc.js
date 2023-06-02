@@ -126,26 +126,40 @@ export function Comms(message, userState, channel, isModUp, client) {
     });
 }
 
-export function startTimerMessage(client, channel, timerMessage, counter) {
-  fetch(`https://api.twitch.tv/helix/streams?user_login=${channel}`, {
-    headers: {
-      "Client-ID": process.env.STREAMER_OAUTH,
-      Authorization: process.env.STREAMER_CLIENT_ID,
-    },
+let live;
+
+fetch(`https://api.twitch.tv/helix/streams?user_login=sinsofaninja`, {
+  headers: {
+    "Client-ID": process.env.STREAMER_CLIENT_ID,
+    Authorization: process.env.STREAMER_OAUTH2,
+  },
+})
+  .then((res) => {
+    if (!res.ok) {
+      throw new Error("Network response is not OK");
+    }
+    return res.json();
   })
-    .then((res) => res.json())
-    .then((data) => {
-      console.log(data);
+  .then((data) => {
+    data.data.map((streamer) => {
+      live = streamer.type;
     });
+  });
+
+export function startTimerMessage(client, channel, timerMessage, counter) {
   // if (response.data.data.length > 0) {
   //   console.log(`${channelName} is live`);
   // } else {
   //   console.log(`${channelName} is not live`);
   // }
-  setInterval(() => {
-    console.log("Done");
-    console.log(timerMessage.message);
-    //var followPhrases = phrases[Math.floor(Math.random() * phrases.length)];
-    client.say(channel, `${timerMessage.message}`);
-  }, parseInt(timerMessage.time) * 1000);
+  if (live === "live") {
+    setInterval(() => {
+      console.log("Done");
+      console.log(timerMessage.message);
+      //var followPhrases = phrases[Math.floor(Math.random() * phrases.length)];
+      client.say(channel, `${timerMessage.message}`);
+    }, parseInt(timerMessage.time) * 1000);
+  } else {
+    console.log("Offline");
+  }
 }

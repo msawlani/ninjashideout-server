@@ -26,27 +26,27 @@ timedMessagesRouter
     });
   });
 
-// timedMessagesRouter
-//   .route("/:name")
-//   .delete((req, res, next) => {
-//     TimedMessages.deleteOne({ name: req.params.name }).then((resp) => {
-//       console.log(req.params.id);
-//       res.status = 200;
-//       res.setHeader("Content-Type", "application/json");
-//       res.json(resp);
-//     });
-//   })
-//   .put((req, res, next) => {
-//     TimedMessages.updateOne(
-//       { name: req.params.name },
-//       { $set: req.body },
-//       { new: true }
-//     ).then((resp) => {
-//       console.log(req.params.id);
-//       res.status = 200;
-//       res.setHeader("Content-Type", "application/json");
-//       res.json(resp);
-//     });
-//   });
+timedMessagesRouter
+  .route("/:name")
+  .delete((req, res, next) => {
+    TimedMessages.deleteOne({ name: req.params.name }).then((resp) => {
+      console.log(req.params.id);
+      res.status = 200;
+      res.setHeader("Content-Type", "application/json");
+      res.json(resp);
+    });
+  })
+  .put((req, res, next) => {
+    TimedMessages.updateOne(
+      { name: req.params.name },
+      { $set: req.body },
+      { new: true }
+    ).then((resp) => {
+      console.log(req.params.id);
+      res.status = 200;
+      res.setHeader("Content-Type", "application/json");
+      res.json(resp);
+    });
+  });
 
 module.exports = timedMessagesRouter;

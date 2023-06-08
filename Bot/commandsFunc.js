@@ -147,19 +147,7 @@ fetch(`https://api.twitch.tv/helix/streams?user_login=sinsofaninja`, {
   });
 
 export function startTimerMessage(client, channel, timerMessage, counter) {
-  // if (response.data.data.length > 0) {
-  //   console.log(`${channelName} is live`);
-  // } else {
-  //   console.log(`${channelName} is not live`);
-  // }
-  if (live === "live") {
-    setInterval(() => {
-      console.log("Done");
-      console.log(timerMessage.message);
-      //var followPhrases = phrases[Math.floor(Math.random() * phrases.length)];
-      client.say(channel, `${timerMessage.message}`);
-    }, parseInt(timerMessage.time) * 1000);
-  } else {
-    console.log("Offline");
-  }
+  setInterval(() => {
+    client.say(channel, `${timerMessage.message}`);
+  }, parseInt(timerMessage.time) * 1000);
 }

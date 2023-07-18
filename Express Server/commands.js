@@ -7,6 +7,9 @@ const commandSchema = new schema({
     unique: true,
     required: true,
   },
+  modandup: {
+    type: Boolean,
+  },
   active: {
     type: Boolean,
   },

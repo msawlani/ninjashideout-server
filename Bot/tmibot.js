@@ -1,9 +1,9 @@
 //This bot was created using javascript and uses the tmi api to connect to twitch by Sins of a Ninja
 import tmi from "tmi.js";
-import Commands from "./commands.json";
-import TimedMessages from "./TimedMessages.json";
-const badwords = require("./badwords.json");
+const badwords = require("../data/badwords.json");
 const fetch = require("node-fetch");
+const url = "http://localhost:3001";
+import { Comms, startTimerMessage } from "./commandsFunc";
 
 //functions and vars
 var users = [];
@@ -11,7 +11,6 @@ var permit = [];
 var shoutOut = true;
 var schedule = true;
 var dice = true;
-var counter = 0;
 var messageDeletes = 0;
 var linkDeletes = 0;
 var mods = true;
@@ -21,6 +20,7 @@ var following = true;
 var vips = true;
 var uptime = true;
 var song = true;
+var counter = 0;
 
 //this is to create the user and involves time watched, points,
 //and username plus there are prototypes to count points and total watch time
@@ -195,186 +195,6 @@ function FilterChat(userState, message, channel, isModUp, isBroadcaster) {
   }
 }
 
-function Comms(message, userState, channel, isModUp) {
-  message = message.toLowerCase();
-
-  if (message.startsWith("!editcomm") && isModUp === true) {
-    var command = message.split(" ")[1];
-    var message = message.split(" ").slice(2).join(" ");
-    console.log(command);
-    if (command !== "" && message !== "") {
-      for (let [i, comm] of Commands.commands.entries()) {
-        if (comm.command === command) {
-          comm.message = message;
-          fs.writeFile("./commands.json", JSON.stringify(Commands), (err) => {
-            if (err) {
-              console.log(err);
-            } else {
-              client.say(
-                channel,
-                `@${userState.username} --> You have edited the ${command} command`
-              );
-              console.log(`${command} has been edited`);
-            }
-          });
-        }
-      }
-    } else {
-      client.say(
-        channel,
-        "Must enter the command name and message you want to replace."
-      );
-    }
-  }
-
-  if (message.startsWith("!editmessage") && isModUp === true) {
-    var name = message.split(" ")[1];
-    var timer = message.split(" ")[2];
-    var message = message.split(" ").slice(3).join(" ");
-    console.log(name);
-
-    for (let [i, nam] of TimedMessages.timedMessage.entries()) {
-      if (nam.name === name) {
-        nam.timer = timer;
-        if (message !== "") {
-          nam.message = message;
-        }
-
-        fs.writeFile(
-          "./TimedMessages.json",
-          JSON.stringify(TimedMessages),
-          (err) => {
-            if (err) {
-              console.log(err);
-            } else {
-              client.say(
-                channel,
-                `@${userState.username} --> You have edited the ${name} timed message`
-              );
-              console.log(`${name} timed message has been edited`);
-            }
-          }
-        );
-      }
-    }
-  }
-
-  if (message.startsWith("!delcomm") && isModUp === true) {
-    var command = message.split(" ")[1];
-    console.log(command);
-
-    for (let [i, comm] of Commands.commands.entries()) {
-      if (comm.command === command) {
-        Commands.commands.splice(i, 1);
-        fs.writeFile("./commands.json", JSON.stringify(Commands), (err) => {
-          if (err) {
-            console.log(err);
-          } else {
-            client.say(
-              channel,
-              `@${userState.username} --> You have deleted the ${command} command`
-            );
-            console.log(`${command} has been deleted`);
-          }
-        });
-      }
-    }
-  }
-
-  if (message.startsWith("!delmessage") && isModUp === true) {
-    var name = message.split(" ")[1];
-    console.log(name);
-
-    for (let [i, message] of TimedMessages.timedMessage.entries()) {
-      if (message.name === name) {
-        TimedMessages.timedMessage.splice(i, 1);
-        fs.writeFile(
-          "./TimedMessages.json",
-          JSON.stringify(TimedMessages),
-          (err) => {
-            if (err) {
-              console.log(err);
-            } else {
-              client.say(
-                channel,
-                `@${userState.username} --> You have deleted the ${name} timed message`
-              );
-              console.log(`${name} timed message has been deleted`);
-            }
-          }
-        );
-      }
-    }
-  }
-
-  if (message.startsWith("!addcomm") && isModUp === true) {
-    var command = message.split(" ")[1];
-    var message = message.split(" ").slice(2).join(" ");
-    console.log(command);
-    console.log(message);
-    Commands["commands"].push({
-      command: command,
-      active: true,
-      message: message,
-    });
-  }
-
-  if (message.startsWith("!addmessage") && isModUp === true) {
-    var name = message.split(" ")[1];
-    var timer = message.split(" ")[2];
-    var lines = message.split(" ")[3];
-    var message = message.split(" ").slice(4).join(" ");
-    // console.log(name);
-    // console.log(timer);
-    // console.log(message);
-    if (name !== "" && timer !== "" && lines !== "" && message !== "") {
-      TimedMessages["timedMessage"].push({
-        name: name,
-        timer: timer,
-        remaining: 0,
-        lines: lines,
-        message: message,
-      });
-      console.log(TimedMessages);
-      fs.writeFile(
-        "./TimedMessages.json",
-        JSON.stringify(TimedMessages),
-        (err) => {
-          if (err) {
-            console.log(err);
-          } else {
-            client.say(
-              channel,
-              `@${userState.username} --> You have added the ${name} timed message`
-            );
-            console.log(`${name} timed message has been added`);
-          }
-        }
-      );
-    } else {
-      client.say(
-        channel,
-        `@${userState.username} --> Must enter name of message, how many minutes, how many chat lines, and what the message says.`
-      );
-    }
-  }
-
-  fetch("http://localhost:3001/commands")
-    .then((res) => res.json())
-    .then((data) => {
-      data.map((command) => {
-        if (message === `!${command.command}`) {
-          client.say(channel, command.message);
-          command.active = false;
-          // console.log(command.command);
-          setTimeout(function () {
-            command.active = true;
-            console.log(`${command.command} Done`);
-          }, 30000);
-        }
-      });
-    });
-}
 function ShoutOut(message, userState, channel, isModUp, shoutOut) {
   message = message.toLowerCase();
 
@@ -418,8 +238,8 @@ const client = new tmi.Client({
     reconnectInterval: 1000,
   },
   identity: {
-    username: process.env.TWITCH_USER,
-    password: process.env.OAUTH,
+    username: process.env.BOT_NAME,
+    password: process.env.BOT_OAUTH,
   },
   channels: ["SinsofaNinja"],
 });
@@ -427,24 +247,20 @@ const client = new tmi.Client({
 //connecting client to server
 client.on("connected", (port, address) => {
   console.log(client);
-  TimedMessages.timedMessage.forEach((name) => {
-    console.log(parseInt(name.timer));
-
-    setInterval(() => {
-      //var followPhrases = phrases[Math.floor(Math.random() * phrases.length)];
-      if (counter >= name.lines) {
-        client.say("SinsofaNinja", `${name.message}`);
-        counter = 0;
-      }
-    }, parseInt(name.timer) * 60000);
-  });
+  fetch(`${url}/timedmessages`)
+    .then((res) => res.json())
+    .then((data) => {
+      data.forEach((timedMessage) => {
+        startTimerMessage(client, "sinsofaninja", timedMessage);
+      });
+    });
 });
 client.connect().catch(console.error);
 //chat moderation and commands
 client.on("message", (channel, userState, message, self) => {
   // Don't listen to my own messages..
   if (self) return;
-  if (userState.username === process.env.TWITCH_USER) return;
+  if (userState.username === process.env.BOT_NAME) return;
   //bools for mod broadcaster and both
   let isMod = userState.mod || userState["user-type"] === "mod";
   let isBroadcaster = userState.username === "sinsofaninja";
@@ -452,6 +268,14 @@ client.on("message", (channel, userState, message, self) => {
   // console.log("Broadcaster: ", isBroadcaster);
   // console.log("Mod: ", isMod);
   // console.log("Mod Up: ", isModUp);
+
+  if (message.toLowerCase()) {
+    counter++;
+  }
+
+  if (isBroadcaster === false) {
+    console.log("test");
+  }
 
   checkChatForLinks(userState, message, channel, isModUp, permit);
 
@@ -462,11 +286,6 @@ client.on("message", (channel, userState, message, self) => {
 
   //       console.log(`${userState.username}`);
   // }
-
-  if (message.toLowerCase()) {
-    counter++;
-    // console.log(counter);
-  }
   client.on(
     "messagedeleted",
     (channel, username, deletedMessage, userstate) => {
@@ -475,8 +294,34 @@ client.on("message", (channel, userState, message, self) => {
       }
     }
   );
-  Comms(message, userState, channel, isModUp);
+  Comms(message, userState, channel, isModUp, client, isBroadcaster);
   ShoutOut(message, userState, channel, isModUp, shoutOut);
+
+  if (message.toLowerCase() === "!recthat") {
+    fetch(
+      `https://api.twitch.tv/helix/clips?broadcaster_id=${process.env.STREAMER_ID}`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: process.env.STREAMER_OAUTH,
+          "Client-Id": process.env.STREAMER_CLIENT_ID,
+        },
+      }
+    )
+      .then((res) => res.json())
+      .then((data) => {
+        if (
+          data.message != "Clipping is not possible for an offline channel."
+        ) {
+          client.say(
+            channel,
+            `Clip has been successfully saved! ${data.message}`
+          );
+          return;
+        }
+        client.say(channel, data.message);
+      });
+  }
 
   if (message.toLowerCase() === "!ad" && isBroadcaster === true) {
     client.say(channel, "Will be playing a 30 second Ad.");

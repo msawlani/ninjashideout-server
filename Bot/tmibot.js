@@ -1,6 +1,6 @@
 //This bot was created using javascript and uses the tmi api to connect to twitch by Sins of a Ninja
 import tmi from "tmi.js";
-const badwords = require("../data/badwords.json");
+const badwords = require("./Data/badwords.json");
 const fetch = require("node-fetch");
 const url = "http://localhost:3001";
 import { Comms, startTimerMessage } from "./commandsFunc";

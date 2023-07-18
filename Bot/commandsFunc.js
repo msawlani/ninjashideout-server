@@ -2,12 +2,19 @@ const fetch = require("node-fetch");
 const url = "http://localhost:3001";
 let activeIntervals = [];
 
-export function Comms(message, userState, channel, isModUp, client) {
+export function Comms(
+  message,
+  userState,
+  channel,
+  isModUp,
+  client,
+  isBroadcaster
+) {
   message = message.toLowerCase();
-
   if (message.startsWith("!editcomm") && isModUp === true) {
     var command = {
       command: message.split(" ")[1],
+      modandup: false,
       active: true,
       message: message.split(" ").slice(2).join(" "),
     };
@@ -57,6 +64,7 @@ export function Comms(message, userState, channel, isModUp, client) {
   if (message.startsWith("!addcomm") && isModUp === true) {
     var command = {
       command: message.split(" ")[1],
+      modandup: false,
       active: true,
       message: message.split(" ").slice(2).join(" "),
     };
@@ -114,37 +122,27 @@ export function Comms(message, userState, channel, isModUp, client) {
     .then((data) => {
       data.map((command) => {
         if (message === `!${command.command}`) {
-          client.say(channel, command.message);
-          command.active = false;
-          // console.log(command.command);
-          setTimeout(function () {
-            command.active = true;
-            console.log(`${command.command} Done`);
-          }, 30000);
+          if (command.modandup === isModUp) {
+            client.say(channel, command.message);
+            command.active = false;
+            // console.log(command.command);
+            setTimeout(function () {
+              command.active = true;
+              console.log(`${command.command} Done`);
+            }, 30000);
+          } else {
+            client.say(channel, command.message);
+            command.active = false;
+            // console.log(command.command);
+            setTimeout(function () {
+              command.active = true;
+              console.log(`${command.command} Done`);
+            }, 30000);
+          }
         }
       });
     });
 }
-
-let live;
-
-fetch(`https://api.twitch.tv/helix/streams?user_login=sinsofaninja`, {
-  headers: {
-    "Client-ID": process.env.STREAMER_CLIENT_ID,
-    Authorization: process.env.STREAMER_OAUTH2,
-  },
-})
-  .then((res) => {
-    if (!res.ok) {
-      throw new Error("Network response is not OK");
-    }
-    return res.json();
-  })
-  .then((data) => {
-    data.data.map((streamer) => {
-      live = streamer.type;
-    });
-  });
 
 export function startTimerMessage(client, channel, timerMessage, counter) {
   setInterval(() => {

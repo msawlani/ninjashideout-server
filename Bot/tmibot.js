@@ -273,6 +273,10 @@ client.on("message", (channel, userState, message, self) => {
     counter++;
   }
 
+  if (isBroadcaster === false) {
+    console.log("test");
+  }
+
   checkChatForLinks(userState, message, channel, isModUp, permit);
 
   FilterChat(userState, message, channel, isModUp, isBroadcaster);
@@ -290,7 +294,7 @@ client.on("message", (channel, userState, message, self) => {
       }
     }
   );
-  Comms(message, userState, channel, isModUp, client);
+  Comms(message, userState, channel, isModUp, client, isBroadcaster);
   ShoutOut(message, userState, channel, isModUp, shoutOut);
 
   if (message.toLowerCase() === "!recthat") {

@@ -1,6 +1,9 @@
 const fetch = require("node-fetch");
 const url = "http://localhost:3001";
-let activeIntervals = [];
+
+export var chatLinesCounter = {
+  counter: 0,
+};
 
 export function Comms(
   message,
@@ -146,6 +149,9 @@ export function Comms(
 
 export function startTimerMessage(client, channel, timerMessage, counter) {
   setInterval(() => {
-    client.say(channel, `${timerMessage.message}`);
+    if (timerMessage.lines <= chatLinesCounter.counter) {
+      client.say(channel, `${timerMessage.message}`);
+      chatLinesCounter.counter = 0;
+    }
   }, parseInt(timerMessage.time) * 1000);
 }

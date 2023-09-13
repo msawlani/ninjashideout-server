@@ -3,7 +3,7 @@ import tmi from "tmi.js";
 const badwords = require("../data/badwords.json");
 const fetch = require("node-fetch");
 const url = "http://localhost:3001";
-import { Comms, startTimerMessage } from "./commandsFunc";
+import { Comms, startTimerMessage, chatLinesCounter } from "./commandsFunc";
 
 //functions and vars
 var users = [];
@@ -269,9 +269,7 @@ client.on("message", (channel, userState, message, self) => {
   // console.log("Mod: ", isMod);
   // console.log("Mod Up: ", isModUp);
 
-  if (message.toLowerCase()) {
-    counter++;
-  }
+  chatLinesCounter.counter++;
 
   if (isBroadcaster === false) {
     console.log("test");

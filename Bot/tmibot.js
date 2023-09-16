@@ -4,6 +4,8 @@ const badwords = require("./Data/badwords.json");
 const fetch = require("node-fetch");
 const url = "http://localhost:3001";
 import { Comms, startTimerMessage, chatLinesCounter } from "./commandsFunc";
+const clientId = process.env.STREAMER_CLIENT_ID;
+const accessToken = process.env.STREAMER_OAUTH2;
 
 //functions and vars
 var users = [];
@@ -55,7 +57,20 @@ function checkUsers(status, username, channel) {
     // }
   }
 }
-
+function DeleteMessage(id) {
+  fetch(
+    `https://api.twitch.tv/helix/moderation/chat?broadcaster_id=58688659&moderator_id=584386199&message_id=${id}`,
+    {
+      method: "DELETE",
+      headers: {
+        "Client-ID": process.env.BOT_ID,
+        Authorization: process.env.BOT_TOKEN,
+      },
+    }
+  )
+    .then((res) => res.json())
+    .then((data) => console.log("Error", data));
+}
 //refreshes bot
 function refreshBot() {
   var thisTimeout = setTimeout(function () {
@@ -110,17 +125,20 @@ function checkChatForLinks(userState, message, channel, isModUp, permit) {
   });
 
   console.log(value);
-  if (value >= 1 && isModUp == false) {
+  if (value >= 1 && isModUp === false) {
     // console.log(userState.badges.broadcaster);
-
-    count = count + 1;
-    client.say(
-      channel,
-      `@${userState.username}, [WARNING!] [Stop Posting Links!]`
-    );
-    client.deletemessage(channel, userState.id);
-    count = count + 1;
-    console.log("count" + count);
+    try {
+      count = count + 1;
+      client.say(
+        channel,
+        `@${userState.username}, [WARNING!] [Stop Posting Links!]`
+      );
+      DeleteMessage(userState.id);
+      count = count + 1;
+      console.log("count" + count);
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   if (count === 3) {
@@ -133,7 +151,6 @@ function checkChatForLinks(userState, message, channel, isModUp, permit) {
     count = 0;
   }
 }
-
 //check if there are bad words being sent and deletes them then client sends a message to chat
 function SuperFilterChat(userState, message, channel, isModUp) {
   message = message.toLowerCase();
@@ -151,8 +168,12 @@ function SuperFilterChat(userState, message, channel, isModUp) {
   console.log(value);
   if (value >= 1 && isModUp === false) {
     // console.log(userState.badges.broadcaster);
-    client.say(channel, `@${userState.username}, ${phrases[valuePhrases]} `);
-    client.deletemessage(channel, userState.id);
+    try {
+      client.say(channel, `@${userState.username}, ${phrases[valuePhrases]} `);
+      DeleteMessage(userState.id);
+    } catch (error) {
+      console.log(error);
+    }
   }
   if (messageDeletes == 3) {
     client.timeout(
@@ -181,8 +202,13 @@ function FilterChat(userState, message, channel, isModUp, isBroadcaster) {
   });
 
   // console.log(value);
-  if (value >= 1 && isModUp == true) {
-    client.deletemessage(channel, userState.id);
+  if (value >= 1 && isModUp === false) {
+    try {
+      client.say(channel, `@${userState.username}, ${phrases[valuePhrases]} `);
+      DeleteMessage(userState.id);
+    } catch (error) {
+      console.log(error);
+    }
   }
   if (messageDeletes == 3) {
     client.timeout(
@@ -255,8 +281,9 @@ client.on("connected", (port, address) => {
       });
     });
 });
+
 client.connect().catch(console.error);
-//chat moderation and commands
+
 client.on("message", (channel, userState, message, self) => {
   // Don't listen to my own messages..
   if (self) return;
@@ -268,6 +295,8 @@ client.on("message", (channel, userState, message, self) => {
   // console.log("Broadcaster: ", isBroadcaster);
   // console.log("Mod: ", isMod);
   // console.log("Mod Up: ", isModUp);
+
+  console.log(userState.id);
 
   chatLinesCounter.counter++;
 

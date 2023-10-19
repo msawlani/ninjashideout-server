@@ -508,7 +508,7 @@ client.on("message", (channel, userState, message, self) => {
   if (message.toLowerCase() === "!schedule" && schedule) {
     client.say(
       channel,
-      `@${userState.username}, I stream every Saturday & Sunday at 3pm CST / 4pm EST sometimes I do bonus streams on Thursday or Friday.`
+      `@${userState.username}, I stream Thursday to Monday at 2pm CST / 3pm EST to 5pm EST.`
     );
 
     schedule = false;

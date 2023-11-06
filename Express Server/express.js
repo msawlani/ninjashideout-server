@@ -4,6 +4,7 @@ const cors = require("cors");
 const mongoose = require("mongoose");
 const commandRouter = require("./commandsRouter");
 const timedMessagesRouter = require("./TimedMessagesRouter");
+const kunaiSystemRouter = require("./kunaiSystemRouter");
 const fetch = require("node-fetch");
 
 app.use(cors());
@@ -13,6 +14,7 @@ mongoose.connect(process.env.DBCONNECTION);
 
 app.use("/commands", commandRouter);
 app.use("/timedMessages", timedMessagesRouter);
+app.use("/kunaiSystem", kunaiSystemRouter);
 app.get("/api/users", async (req, res) => {
   const clientId = process.env.STREAMER_CLIENT_ID;
   const accessToken = req.headers.authorization;

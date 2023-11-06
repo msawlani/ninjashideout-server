@@ -1,7 +1,5 @@
 const express = require("express");
 const bodyParser = require("body-parser");
-const mongoose = require("mongoose");
-// const cors = require("./cors")
 const Commands = require("./commands");
 
 const commandRouter = express.Router();

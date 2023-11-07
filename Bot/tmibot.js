@@ -4,8 +4,12 @@ const badwords = require("./Data/badwords.json");
 const fetch = require("node-fetch");
 const url = "http://localhost:3001";
 import { Comms, startTimerMessage, chatLinesCounter } from "./commandsFunc";
+const MongoClient = require("mongodb").MongoClient;
 const clientId = process.env.STREAMER_CLIENT_ID;
 const accessToken = process.env.STREAMER_OAUTH2;
+
+let clientdb = new MongoClient(process.env.DBCONNECTION);
+let collection = clientdb.db("Ninjashideout").collection("viewers");
 
 //functions and vars
 var users = [];
@@ -24,6 +28,9 @@ var uptime = true;
 var song = true;
 var counter = 0;
 
+let viewers = [];
+let foundViewer = {};
+
 //this is to create the user and involves time watched, points,
 //and username plus there are prototypes to count points and total watch time
 // var points = 0;
@@ -40,15 +47,54 @@ var counter = 0;
 //check if user has join or left and creates a user object
 //on join it will add that user to list of users
 //on left it will delete user from list and store it into a file for next time they join
-function checkUsers(status, username, channel) {
-  if (status === "Joined") {
-    // const user = new User(username, points);
-    // users.push(user);
+async function checkUsers(status, username, channel) {
+  const viewer = {
+    username: username,
+    kunai: 0,
+  };
+  let foundViewer = await collection.findOne({ username: username });
 
+  if (status === "Joined") {
+    if (foundViewer) {
+      viewers.push({
+        username: foundViewer.username,
+        kunai: foundViewer.kunai,
+      });
+    } else if (!viewers.includes((viewer) => viewer.username == username)) {
+      viewers.push(viewer);
+    }
+
+    console.log(viewers);
     console.log("Joined " + username);
   }
   if (status === "Left") {
-    console.log("Left " + users[i].username);
+    let leftViewer = viewers.find((viewer) => viewer.username == username);
+
+    if (foundViewer) {
+      fetch(`${url}/kunaiSystem/${leftViewer.username}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(leftViewer),
+      })
+        .then((res) => res.json())
+        .then((data) => console.log(data));
+    } else {
+      fetch(`${url}/kunaiSystem`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(leftViewer),
+      })
+        .then((res) => res.json())
+        .then((data) => console.log(data));
+      console.log(viewers);
+      console.log("Left " + username);
+    }
+
+    viewers.splice(leftViewer);
 
     // for (let i = 0; i < users.length; i++) {
     //   if (users[i] === username) {
@@ -79,19 +125,32 @@ function refreshBot() {
 }
 
 async function getLive() {
-  let resp = await fetch(
-    "https://api.twitch.tv/helix/search/channels?query=sinsofaninja",
-    {
-      method: "get",
+  try {
+    fetch(`https://api.twitch.tv/helix/streams?user_login=sinsofaninja`, {
+      method: "GET",
       headers: {
-        "client-id": "duual3o5vi0axbc7qryzgo9f18z2ek",
-        Authorization: "Bearer rgllofa4q2yeh1z61l1xt76boajucs",
+        "Client-ID": process.env.STREAMER_CLIENT_ID,
+        Authorization: process.env.STREAMER_OAUTH2,
       },
-    }
-  );
-  let data = await resp.json();
-  let is_live = data.data[0];
-  return is_live;
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.data.length != 0) {
+          console.log("he is live");
+          setInterval(() => {
+            for (let viewer of viewers) {
+              viewer.kunai++;
+            }
+          }, 10000);
+        } else {
+          console.log("he is not live");
+          setTimeout(() => getLive(), 5000);
+        }
+      });
+  } catch (error) {
+    console.log(error);
+    setTimeout(() => getLive(), 5000);
+  }
 }
 
 async function Test() {
@@ -221,10 +280,37 @@ function FilterChat(userState, message, channel, isModUp, isBroadcaster) {
   }
 }
 
+function KunaiCommands(message, userState, channel, isModUp) {
+  message = message.toLowerCase();
+
+  if (message.startsWith("!givekunai") && isModUp) {
+    var user = message.split(" ")[1];
+    var kunai = Number(message.split(" ")[2]);
+    let viewerToAdd = viewers.find((viewer) => viewer.username === user);
+    viewerToAdd.kunai += kunai;
+    client.say(
+      channel,
+      `Added ${kunai} kunai(s) to ${user}. They now have a total of ${viewerToAdd.kunai}`
+    );
+  }
+
+  if (message.startsWith("!removekunai") & isModUp) {
+    var user = message.split(" ")[1];
+    var kunai = Number(message.split(" ")[2]);
+    let viewerToRemove = viewers.find((viewer) => viewer.username === user);
+    let newKunai = Math.max(0, viewerToRemove.kunai - kunai);
+    viewerToRemove.kunai = newKunai;
+    client.say(
+      channel,
+      `Removed ${kunai} kunai(s) from ${user}. They now have a total of ${viewerToRemove.kunai}`
+    );
+  }
+}
+
 function ShoutOut(message, userState, channel, isModUp, shoutOut) {
   message = message.toLowerCase();
 
-  if (message.startsWith("!shoutout")) {
+  if (message.startsWith("!shoutout") && isModUp) {
     var user = message.split(" ")[1];
     console.log(user);
     if (typeof user !== "undefined" && isModUp === true) {
@@ -272,6 +358,24 @@ const client = new tmi.Client({
 
 //connecting client to server
 client.on("connected", (port, address) => {
+  let isLive = fetch(
+    `https://api.twitch.tv/helix/streams?user_login=sinsofaninja`,
+    {
+      headers: {
+        "Client-ID": process.env.STREAMER_CLIENT_ID,
+        Authorization: process.env.STREAMER_OAUTH2,
+      },
+    }
+  ).then((res) => {
+    console.log(res);
+    // if (res.data.length) {
+    //   console.log("Online");
+    //   return true;
+    // } else {
+    //   console.log("Offline");
+    //   return false;
+    // }
+  });
   console.log(client);
   fetch(`${url}/timedmessages`)
     .then((res) => res.json())
@@ -280,9 +384,14 @@ client.on("connected", (port, address) => {
         startTimerMessage(client, "sinsofaninja", timedMessage);
       });
     });
+  getLive();
 });
 
 client.connect().catch(console.error);
+
+client.on("disconnected", () => {
+  console.log("Disconnected");
+});
 
 client.on("message", (channel, userState, message, self) => {
   // Don't listen to my own messages..
@@ -306,6 +415,8 @@ client.on("message", (channel, userState, message, self) => {
 
   checkChatForLinks(userState, message, channel, isModUp, permit);
 
+  KunaiCommands(message, userState, channel, isModUp);
+
   FilterChat(userState, message, channel, isModUp, isBroadcaster);
   //SuperFilterChat(userState, message, channel, isModUp);
 
@@ -323,6 +434,27 @@ client.on("message", (channel, userState, message, self) => {
   );
   Comms(message, userState, channel, isModUp, client, isBroadcaster);
   ShoutOut(message, userState, channel, isModUp, shoutOut);
+
+  if (message.toLowerCase() === "!part") {
+    client.part(channel);
+  }
+
+  if (message.toLowerCase() === "!join") {
+    client.join(channel);
+  }
+
+  if (message.toLowerCase() === "!kunai") {
+    let viewer = viewers.find(
+      (viewer) => viewer.username === userState.username
+    );
+
+    if (viewer) {
+      client.say(
+        channel,
+        `${viewer.username}, You have ${viewer.kunai} kunai(s)`
+      );
+    }
+  }
 
   if (message.toLowerCase() === "!recthat") {
     fetch(
@@ -522,17 +654,6 @@ client.on("message", (channel, userState, message, self) => {
 //handles when someone joins
 client.on("join", (channel, username, self) => {
   checkUsers("Joined", username);
-
-  //  getLive().then((data) => {
-  //    let live = data.is_live;
-  //    if (live === true) {
-  //       checkUsers("Joined", username);
-  //      console.log("Online");
-  //    }
-  //    else{
-  //      console.log("Offline");
-  //      }
-  //  });
 });
 
 client.on("resub", (channel, username, months, message, userstate, methods) => {
@@ -573,7 +694,7 @@ client.on("notice", (channel, msgid, message) => {
 
 //handles when someone leaves
 client.on("part", (channel, username, self) => {
-  // checkUsers("Left", username);
+  checkUsers("Left", username);
 });
 
 //handles if i raid someone and client says which channel, link to channel, and viewer count

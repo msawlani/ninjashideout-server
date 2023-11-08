@@ -141,7 +141,7 @@ async function getLive() {
             for (let viewer of viewers) {
               viewer.kunai++;
             }
-          }, 10000);
+          }, 300000);
         } else {
           console.log("he is not live");
           setTimeout(() => getLive(), 5000);

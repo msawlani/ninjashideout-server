@@ -3,7 +3,12 @@ import tmi from "tmi.js";
 const badwords = require("./Data/badwords.json");
 const fetch = require("node-fetch");
 const url = "http://localhost:3001";
-import { Comms, startTimerMessage, chatLinesCounter } from "./commandsFunc";
+import {
+  Comms,
+  startTimerMessage,
+  chatLinesCounter,
+  CustomCommands,
+} from "./commandsFunc";
 const MongoClient = require("mongodb").MongoClient;
 const clientId = process.env.STREAMER_CLIENT_ID;
 const accessToken = process.env.STREAMER_OAUTH2;
@@ -12,37 +17,11 @@ let clientdb = new MongoClient(process.env.DBCONNECTION);
 let collection = clientdb.db("Ninjashideout").collection("viewers");
 
 //functions and vars
-var users = [];
 var permit = [];
 var shoutOut = true;
-var schedule = true;
-var dice = true;
 var messageDeletes = 0;
-var linkDeletes = 0;
-var mods = true;
-var title = true;
-var game = true;
-var following = true;
-var vips = true;
-var uptime = true;
-var song = true;
-var counter = 0;
 
 let viewers = [];
-let foundViewer = {};
-
-//this is to create the user and involves time watched, points,
-//and username plus there are prototypes to count points and total watch time
-// var points = 0;
-
-// function User(name, points) {
-//   this.points = points;
-//   this.name = name;
-//   setInterval(function () {
-//     points = ++points % 360;
-//     console.log(points);
-//   }, 1000);
-// }
 
 //check if user has join or left and creates a user object
 //on join it will add that user to list of users
@@ -117,12 +96,6 @@ function DeleteMessage(id) {
     .then((res) => res.json())
     .then((data) => console.log("Error", data));
 }
-//refreshes bot
-function refreshBot() {
-  var thisTimeout = setTimeout(function () {
-    client.connect().catch(console.error);
-  }, 10000);
-}
 
 async function getLive() {
   try {
@@ -151,21 +124,6 @@ async function getLive() {
     console.log(error);
     setTimeout(() => getLive(), 5000);
   }
-}
-
-async function Test() {
-  let resp = await fetch(
-    "https://api.twitch.tv/helix/clips?broadcaster_id=58438619",
-    {
-      method: "get",
-      headers: {
-        "client-id": "duual3o5vi0axbc7qryzgo9f18z2ek",
-        Authorization: "Bearer buz0d818e3zr9hglckw6b7uknj0jid",
-      },
-    }
-  );
-  let data = await resp.json();
-  return data;
 }
 
 //checks if someone sends a link and if not a mod or broadcaster then it is deleted and client says something
@@ -358,25 +316,6 @@ const client = new tmi.Client({
 
 //connecting client to server
 client.on("connected", (port, address) => {
-  let isLive = fetch(
-    `https://api.twitch.tv/helix/streams?user_login=sinsofaninja`,
-    {
-      headers: {
-        "Client-ID": process.env.STREAMER_CLIENT_ID,
-        Authorization: process.env.STREAMER_OAUTH2,
-      },
-    }
-  ).then((res) => {
-    console.log(res);
-    // if (res.data.length) {
-    //   console.log("Online");
-    //   return true;
-    // } else {
-    //   console.log("Offline");
-    //   return false;
-    // }
-  });
-  console.log(client);
   fetch(`${url}/timedmessages`)
     .then((res) => res.json())
     .then((data) => {
@@ -405,13 +344,9 @@ client.on("message", (channel, userState, message, self) => {
   // console.log("Mod: ", isMod);
   // console.log("Mod Up: ", isModUp);
 
-  console.log(userState.id);
-
   chatLinesCounter.counter++;
 
-  if (isBroadcaster === false) {
-    console.log("test");
-  }
+  CustomCommands(channel, userState, message, client, isModUp, isBroadcaster);
 
   checkChatForLinks(userState, message, channel, isModUp, permit);
 
@@ -434,221 +369,6 @@ client.on("message", (channel, userState, message, self) => {
   );
   Comms(message, userState, channel, isModUp, client, isBroadcaster);
   ShoutOut(message, userState, channel, isModUp, shoutOut);
-
-  if (message.toLowerCase() === "!part") {
-    client.part(channel);
-  }
-
-  if (message.toLowerCase() === "!join") {
-    client.join(channel);
-  }
-
-  if (message.toLowerCase() === "!kunai") {
-    let viewer = viewers.find(
-      (viewer) => viewer.username === userState.username
-    );
-
-    if (viewer) {
-      client.say(
-        channel,
-        `${viewer.username}, You have ${viewer.kunai} kunai(s)`
-      );
-    }
-  }
-
-  if (message.toLowerCase() === "!recthat") {
-    fetch(
-      `https://api.twitch.tv/helix/clips?broadcaster_id=${process.env.STREAMER_ID}`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: process.env.STREAMER_OAUTH,
-          "Client-Id": process.env.STREAMER_CLIENT_ID,
-        },
-      }
-    )
-      .then((res) => res.json())
-      .then((data) => {
-        if (
-          data.message != "Clipping is not possible for an offline channel."
-        ) {
-          client.say(
-            channel,
-            `Clip has been successfully saved! ${data.message}`
-          );
-          return;
-        }
-        client.say(channel, data.message);
-      });
-  }
-
-  if (message.toLowerCase() === "!ad" && isBroadcaster === true) {
-    client.say(channel, "Will be playing a 30 second Ad.");
-    client
-      .commercial(channel, 30)
-      .then((data) => {
-        console.log(data);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  }
-
-  if (message.toLowerCase() === "!mods") {
-    client
-      .mods(channel)
-      .then((data) => {
-        client.say(channel, "Here is a list of mods: " + data.join(", "));
-        console.log(data);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-    mods = false;
-    setTimeout(function () {
-      mods = true;
-      console.log("mods Done");
-    }, 30000);
-  }
-  if (message.toLowerCase() === "!users") {
-    console.log(users);
-  }
-
-  if (message.toLowerCase() === "!vips") {
-    client
-      .vips(channel)
-      .then((data) => {
-        client.say(channel, "Here is a list of vips: " + data.join(", "));
-        console.log(data);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-    vips = false;
-    setTimeout(function () {
-      vips = true;
-      console.log("vips Done");
-    }, 30000);
-  }
-
-  if (message.toLowerCase() === "!dice" && dice) {
-    const num = rollDice();
-    client.say(channel, `@${userState.username}, You rolled a ${num}`);
-    dice = false;
-    setTimeout(function () {
-      dice = true;
-      console.log("dice Done");
-    }, 10000);
-  }
-
-  if (message.toLowerCase() === "!refresh" && isBroadcaster === true) {
-    client
-      .disconnect()
-      .then((data) => {
-        console.log(data);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-    refreshBot();
-  }
-  if (message.toLowerCase() === "!song") {
-    fetch(`https://groke.se/twitch/spotify/?9f7081b35b86f448e452bc81935f2927`)
-      .then((res) => res.text())
-      .then((song) =>
-        client.say(
-          channel,
-          `@${userState.username}, Currently listening to, ${song}`
-        )
-      );
-    song = false;
-    setTimeout(function () {
-      song = true;
-      console.log("song Done");
-    }, 15000);
-  }
-  if (message.toLowerCase() === "!title") {
-    fetch(`https://decapi.me/twitch/title/sinsofaninja`)
-      .then((res) => res.text())
-      .then((title) =>
-        client.say(
-          channel,
-          `@${userState.username}, Currently the title is: ${title}`
-        )
-      );
-    title = false;
-    setTimeout(function () {
-      title = true;
-      console.log("title Done");
-    }, 15000);
-  }
-  if (message.toLowerCase() === "!game") {
-    fetch(`https://decapi.me/twitch/game/sinsofaninja`)
-      .then((res) => res.text())
-      .then((game) =>
-        client.say(
-          channel,
-          `@${userState.username}, Currently I am playing: ${game}`
-        )
-      );
-    game = false;
-    setTimeout(function () {
-      game = true;
-      console.log("game Done");
-    }, 15000);
-  }
-
-  if (message.toLowerCase() === "!following") {
-    fetch(
-      `https://api.2g.be/twitch/followage/sinsofaninja/${userState.username}?format=monthday`
-    )
-      .then((res) => res.text())
-      .then((date) => client.say(channel, date));
-    following = false;
-    setTimeout(function () {
-      following = true;
-      console.log("following Done");
-    }, 10000);
-  }
-
-  if (message.toLowerCase() === "!uptime" && isBroadcaster) {
-    fetch(`https://decapi.me/twitch/uptime/sinsofaninja`)
-      .then((res) => res.text())
-      .then((uptime) => client.say(channel, uptime));
-    uptime = false;
-    setTimeout(function () {
-      uptime = true;
-      console.log("uptime Done");
-    }, 10000);
-  }
-
-  if (message.toLowerCase() === "!alive" && alive) {
-    getLive().then((data) => {
-      console.log(data);
-    });
-    alive = false;
-    setTimeout(function () {
-      alive = true;
-      console.log("alive Done");
-    }, 30000);
-  }
-  if (message.toLowerCase() === "!clip") {
-    Test().then((data) => {
-      console.log(data);
-    });
-  }
-  if (message.toLowerCase() === "!schedule" && schedule) {
-    client.say(
-      channel,
-      `@${userState.username}, I stream Thursday to Monday at 2pm CST / 3pm EST to 5pm EST.`
-    );
-
-    schedule = false;
-    setTimeout(function () {
-      schedule = true;
-      console.log("schedule Done");
-    }, 30000);
-  }
 });
 
 //handles when someone joins
@@ -687,10 +407,6 @@ client.on(
     }
   }
 );
-
-client.on("notice", (channel, msgid, message) => {
-  console.log(channel, msgid, message);
-});
 
 //handles when someone leaves
 client.on("part", (channel, username, self) => {

@@ -155,3 +155,116 @@ export function startTimerMessage(client, channel, timerMessage, counter) {
     }
   }, parseInt(timerMessage.time) * 1000);
 }
+
+export function CustomCommands(
+  channel,
+  userState,
+  message,
+  client,
+  isModUp,
+  isBroadcaster
+) {
+  function refreshBot() {
+    var thisTimeout = setTimeout(function () {
+      client.connect().catch(console.error);
+    }, 10000);
+  }
+
+  if (message.toLowerCase() === "!part" && isModUp) {
+    client.part(channel);
+  }
+
+  if (message.toLowerCase() === "!kunai") {
+    let viewer = viewers.find(
+      (viewer) => viewer.username === userState.username
+    );
+
+    if (viewer) {
+      client.say(
+        channel,
+        `${viewer.username}, You have ${viewer.kunai} kunai(s)`
+      );
+    }
+  }
+
+  if (message.toLowerCase() === "!recthat") {
+    try {
+      fetch(
+        `https://api.twitch.tv/helix/clips?broadcaster_id=${process.env.STREAMER_ID}`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: process.env.STREAMER_OAUTH2,
+            "Client-Id": process.env.STREAMER_CLIENT_ID,
+          },
+        }
+      )
+        .then((res) => res.json())
+        .then((data) => {
+          if (
+            data.message != "Clipping is not possible for an offline channel."
+          ) {
+            client.say(
+              channel,
+              `Clip has been successfully saved! ${data.message}`
+            );
+            return;
+          }
+          client.say(channel, data.message);
+        });
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  if (message.toLowerCase() === "!ad" && isBroadcaster === true) {
+    client.say(channel, "Will be playing a 30 second Ad.");
+    client
+      .commercial(channel, 30)
+      .then((data) => {
+        console.log(data);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }
+
+  if (message.toLowerCase() === "!dice" && dice) {
+    let dice = true;
+    const num = rollDice();
+    client.say(channel, `@${userState.username}, You rolled a ${num}`);
+    dice = false;
+    setTimeout(function () {
+      dice = true;
+      console.log("dice Done");
+    }, 10000);
+  }
+
+  if (message.toLowerCase() === "!refresh" && isBroadcaster === true) {
+    client
+      .disconnect()
+      .then((data) => {
+        console.log(data);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+    refreshBot();
+  }
+  if (message.toLowerCase() === "!song") {
+    let song = true;
+    fetch(`https://groke.se/twitch/spotify/?9f7081b35b86f448e452bc81935f2927`)
+      .then((res) => res.text())
+      .then((song) =>
+        client.say(
+          channel,
+          `@${userState.username}, Currently listening to, ${song}`
+        )
+      );
+    song = false;
+    setTimeout(function () {
+      song = true;
+      console.log("song Done");
+    }, 15000);
+  }
+}

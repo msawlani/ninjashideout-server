@@ -162,7 +162,8 @@ export function CustomCommands(
   message,
   client,
   isModUp,
-  isBroadcaster
+  isBroadcaster,
+  viewers
 ) {
   function refreshBot() {
     var thisTimeout = setTimeout(function () {
@@ -172,6 +173,10 @@ export function CustomCommands(
 
   if (message.toLowerCase() === "!part" && isModUp) {
     client.part(channel);
+  }
+
+  if (message.toLowerCase() === "!viewers") {
+    console.log(viewers);
   }
 
   if (message.toLowerCase() === "!kunai") {

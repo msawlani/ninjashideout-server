@@ -47,33 +47,45 @@ async function checkUsers(status, username, channel) {
     console.log("Joined " + username);
   }
   if (status === "Left") {
-    let leftViewer = viewers.find((viewer) => viewer.username == username);
+    let leftViewer =
+      viewers.find((viewer) => viewer.username == username) || {};
+    let user;
+    let index = viewers.findIndex((viewer) => viewer.usrname === username);
 
     if (foundViewer) {
-      fetch(`${url}/kunaiSystem/${leftViewer.username}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(leftViewer),
-      })
-        .then((res) => res.json())
-        .then((data) => console.log(data));
+      if (leftViewer !== undefined) user = leftViewer.username;
+      try {
+        fetch(`${url}/kunaiSystem/${user}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(leftViewer),
+        })
+          .then((res) => res.json())
+          .then((data) => console.log(data));
+        viewers.splice(index, 1);
+      } catch (error) {
+        console.log(error);
+      }
     } else {
-      fetch(`${url}/kunaiSystem`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(leftViewer),
-      })
-        .then((res) => res.json())
-        .then((data) => console.log(data));
-      console.log(viewers);
-      console.log("Left " + username);
+      try {
+        fetch(`${url}/kunaiSystem`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(leftViewer),
+        })
+          .then((res) => res.json())
+          .then((data) => console.log(data));
+        console.log(viewers);
+        console.log("Left " + username);
+        viewers.splice(index, 1);
+      } catch (error) {
+        console.log(error);
+      }
     }
-
-    viewers.splice(leftViewer);
 
     // for (let i = 0; i < users.length; i++) {
     //   if (users[i] === username) {
@@ -346,7 +358,15 @@ client.on("message", (channel, userState, message, self) => {
 
   chatLinesCounter.counter++;
 
-  CustomCommands(channel, userState, message, client, isModUp, isBroadcaster);
+  CustomCommands(
+    channel,
+    userState,
+    message,
+    client,
+    isModUp,
+    isBroadcaster,
+    viewers
+  );
 
   checkChatForLinks(userState, message, channel, isModUp, permit);
 

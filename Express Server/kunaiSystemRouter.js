@@ -36,7 +36,7 @@ kunaiSystemRouter
     Viewer.updateOne(
       { viewer: req.params.viewer },
       { $set: req.body },
-      { new: false }
+      { upsert: true }
     ).then((resp) => {
       console.log(req.params.viewer);
       res.status = 200;

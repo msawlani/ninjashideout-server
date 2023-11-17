@@ -50,25 +50,23 @@ async function checkUsers(status, username, channel) {
     let leftViewer =
       viewers.find((viewer) => viewer.username == username) || {};
     let user;
-    let index = viewers.findIndex((viewer) => viewer.usrname === username);
-
-    if (foundViewer) {
-      if (leftViewer !== undefined) user = leftViewer.username;
-      try {
-        fetch(`${url}/kunaiSystem/${user}`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(leftViewer),
-        })
-          .then((res) => res.json())
-          .then((data) => console.log(data));
-        viewers.splice(index, 1);
-      } catch (error) {
-        console.log(error);
-      }
+    let index = viewers.findIndex((viewer) => viewer.username === username);
+    if (leftViewer !== undefined) user = leftViewer.username;
+    try {
+      fetch(`${url}/kunaiSystem/${user}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(leftViewer),
+      })
+        .then((res) => res.json())
+        .then((data) => console.log(data));
+      viewers.splice(index, 1);
+    } catch (error) {
+      console.log(error);
     }
+
     // else {
     //   try {
     //     fetch(`${url}/kunaiSystem`, {

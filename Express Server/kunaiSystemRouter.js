@@ -33,10 +33,10 @@ kunaiSystemRouter
     });
   })
   .put((req, res, next) => {
-    Viewer.updateOne(
-      { viewer: req.params.viewer },
+    Viewer.findOneAndUpdate(
+      { username: req.params.viewer },
       { $set: req.body },
-      { upsert: true }
+      { upsert: true, new: true, setDefaultsOnInsert: true }
     ).then((resp) => {
       console.log(req.params.viewer);
       res.status = 200;

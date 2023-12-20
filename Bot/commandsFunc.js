@@ -171,8 +171,25 @@ export function CustomCommands(
     }, 10000);
   }
 
-  if (message.toLowerCase() === "!part" && isModUp) {
-    client.part(channel);
+  if (message.toLowerCase() === "!Disconnect" && isModUp) {
+    try {
+      for (let viewer of viewers) {
+        fetch(`${url}/kunaiSystem/${viewer.username}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(viewer),
+        })
+          .then((res) => res.json())
+          .then((data) => console.log(data));
+      }
+    } catch (error) {
+      console.log(error);
+    }
+    client.disconnect().catch((error) => {
+      console.log(error);
+    });
   }
 
   if (message.toLowerCase() === "!viewers") {

@@ -171,7 +171,7 @@ export function CustomCommands(
     }, 10000);
   }
 
-  if (message.toLowerCase() === "!Disconnect" && isModUp) {
+  if (message.toLowerCase() === "!disconnect" && isModUp) {
     try {
       for (let viewer of viewers) {
         fetch(`${url}/kunaiSystem/${viewer.username}`, {

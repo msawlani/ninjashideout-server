@@ -66,31 +66,6 @@ async function checkUsers(status, username, channel) {
     } catch (error) {
       console.log(error);
     }
-
-    // else {
-    //   try {
-    //     fetch(`${url}/kunaiSystem`, {
-    //       method: "POST",
-    //       headers: {
-    //         "Content-Type": "application/json",
-    //       },
-    //       body: JSON.stringify(leftViewer),
-    //     })
-    //       .then((res) => res.json())
-    //       .then((data) => console.log(data));
-    //     console.log(viewers);
-    //     console.log("Left " + username);
-    //     viewers.splice(index, 1);
-    //   } catch (error) {
-    //     console.log(error);
-    //   }
-    // }
-
-    // for (let i = 0; i < users.length; i++) {
-    //   if (users[i] === username) {
-    //     users.shift(users[i]);
-    //   }
-    // }
   }
 }
 function DeleteMessage(id) {
